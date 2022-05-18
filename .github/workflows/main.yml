@@ -196,7 +196,7 @@ jobs:
       - name: copy files
         run: |
             cd postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
-            mkdir DEBIAN && cp ../debian-pgsql11.control ./DEBIAN/control && \
+            mkdir DEBIAN && cp ../debian-pgsql10.control ./DEBIAN/control && \
             mkdir -p ./usr/lib/postgresql/10/lib/ && cp /usr/lib/postgresql/10/lib/pgauditlogtofile.so ./usr/lib/postgresql/10/lib/pgauditlogtofile.so && \
             mkdir -p ./usr/share/postgresql/10/extension/ && cp /usr/share/postgresql/10/extension/pgauditlogtofile.control ./usr/share/postgresql/10/extension/pgauditlogtofile.control && \
             cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.0.sql && \
