@@ -352,7 +352,6 @@ static bool pgauditlogtofile_needs_rotate_file(void) {
   /* Rotate if the global name is different to this backend copy: it has been
    * rotated */
   if (strcmp(filename_in_use, pgaudit_log_shm->filename) != 0) {
-    printf("Rotate when the global name is different to this backend copy %s %s\n", filename_in_use, pgaudit_log_shm->filename);
     return true;
   }
 
