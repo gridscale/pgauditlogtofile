@@ -1,0 +1,19 @@
+Package: postgresql-11-pgauditlogtofile
+Source: pgauditlogtofile
+Version: 1.5.2-1.pgdg110+1
+Architecture: amd64
+Maintainer: Debian PostgreSQL Maintainers <team+postgresql@tracker.debian.org>
+Installed-Size: 73
+Depends: postgresql-11, libc6 (>= 2.17), postgresql-11-pgaudit
+Section: database
+Priority: optional
+Homepage: https://github.com/fmbiete/pgauditlogtofile
+Description: PostgreSQL pgAudit Add-On to redirect audit logs
+ pgAudit Log to File is an addon to pgAudit than will redirect audit log lines
+ to an independent file, instead of using PostgreSQL server logger.
+ .
+ This allows to have an audit file that we can easily rotate without polluting
+ server logs with those messages.
+ .
+ Audit logs in heavily used systems can grow very fast. This extension allows
+ to automatically rotate the files.

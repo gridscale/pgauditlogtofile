@@ -4,33 +4,210 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  postgresql-14-pgauditlogtofile:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    container:
+      image: postgres:14.2
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-
-      # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+        run: | 
+            apt update && \
+            apt -y --no-install-recommends install \
+            postgresql-14-postgis-3 \
+            postgresql-14-pgaudit \
+            postgresql-server-dev-14 gcc libgssapi-krb5-2 libkrb5-dev libsasl2-modules-gssapi-mit libz-dev build-essential && \
+            rm -rf /var/lib/apt/lists/*
+      - name: ls
+        run: ls -la
+      - name: make
+        run: make install USE_PGXS=1
+      - name: make build dir
+        run: mkdir postgresql-14-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64
+      - name: copy files
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+            cd postgresql-14-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
+            mkdir DEBIAN && cp ../debian-pgsql14.control ./DEBIAN/control && \
+            mkdir -p ./usr/lib/postgresql/14/lib/ && cp /usr/lib/postgresql/14/lib/pgauditlogtofile.so ./usr/lib/postgresql/14/lib/pgauditlogtofile.so && \
+            mkdir -p ./usr/lib/postgresql/14/lib/bitcode/ && cp /usr/lib/postgresql/14/lib/bitcode/pgauditlogtofile.index.bc ./usr/lib/postgresql/14/lib/bitcode/pgauditlogtofile.index.bc && \
+            mkdir -p ./usr/lib/postgresql/14/lib/bitcode/pgauditlogtofile/ && cp -r /usr/lib/postgresql/14/lib/bitcode/pgauditlogtofile/ ./usr/lib/postgresql/14/lib/bitcode/pgauditlogtofile/ && \
+            mkdir -p ./usr/share/postgresql/14/extension/ && cp /usr/share/postgresql/14/extension/pgauditlogtofile.control ./usr/share/postgresql/14/extension/pgauditlogtofile.control && \
+            cp /usr/share/postgresql/14/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/14/extension/pgauditlogtofile--1.0.sql && \
+            cp /usr/share/postgresql/14/extension/pgauditlogtofile--1.0--1.2.sql ./usr/share/postgresql/14/extension/pgauditlogtofile--1.0--1.2.sql && \
+            cp /usr/share/postgresql/14/extension/pgauditlogtofile--1.2--1.3.sql ./usr/share/postgresql/14/extension/pgauditlogtofile--1.2--1.3.sql && \
+            cp /usr/share/postgresql/14/extension/pgauditlogtofile--1.3--1.4.sql ./usr/share/postgresql/14/extension/pgauditlogtofile--1.3--1.4.sql && \
+            cp /usr/share/postgresql/14/extension/pgauditlogtofile--1.4--1.5.sql ./usr/share/postgresql/14/extension/pgauditlogtofile--1.4--1.5.sql
+      - name: build pkg
+        run: dpkg --build ./postgresql-14-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && ls -la
+      - name: Upload deb file
+        uses: actions/upload-artifact@v3
+        with:
+          name: postgresql-14-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+          path: postgresql-14-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+
+  postgresql-13-pgauditlogtofile:
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:13.7
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a one-line script
+        run: | 
+            apt update && \
+            apt -y --no-install-recommends install \
+            postgresql-13-postgis-3 \
+            postgresql-13-pgaudit \
+            postgresql-server-dev-13 gcc libgssapi-krb5-2 libkrb5-dev libsasl2-modules-gssapi-mit libz-dev build-essential && \
+            rm -rf /var/lib/apt/lists/*
+      - name: ls
+        run: ls -la
+      - name: make
+        run: make install USE_PGXS=1
+      - name: make build dir
+        run: mkdir postgresql-13-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64
+      - name: copy files
+        run: |
+            cd postgresql-13-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
+            mkdir DEBIAN && cp ../debian-pgsql13.control ./DEBIAN/control && \
+            mkdir -p ./usr/lib/postgresql/13/lib/ && cp /usr/lib/postgresql/13/lib/pgauditlogtofile.so ./usr/lib/postgresql/13/lib/pgauditlogtofile.so && \
+            mkdir -p ./usr/lib/postgresql/13/lib/bitcode/ && cp /usr/lib/postgresql/13/lib/bitcode/pgauditlogtofile.index.bc ./usr/lib/postgresql/13/lib/bitcode/pgauditlogtofile.index.bc && \
+            mkdir -p ./usr/lib/postgresql/13/lib/bitcode/pgauditlogtofile/ && cp -r /usr/lib/postgresql/13/lib/bitcode/pgauditlogtofile/ ./usr/lib/postgresql/13/lib/bitcode/pgauditlogtofile/ && \
+            mkdir -p ./usr/share/postgresql/13/extension/ && cp /usr/share/postgresql/13/extension/pgauditlogtofile.control ./usr/share/postgresql/13/extension/pgauditlogtofile.control && \
+            cp /usr/share/postgresql/13/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/13/extension/pgauditlogtofile--1.0.sql && \
+            cp /usr/share/postgresql/13/extension/pgauditlogtofile--1.0--1.2.sql ./usr/share/postgresql/13/extension/pgauditlogtofile--1.0--1.2.sql && \
+            cp /usr/share/postgresql/13/extension/pgauditlogtofile--1.2--1.3.sql ./usr/share/postgresql/13/extension/pgauditlogtofile--1.2--1.3.sql && \
+            cp /usr/share/postgresql/13/extension/pgauditlogtofile--1.3--1.4.sql ./usr/share/postgresql/13/extension/pgauditlogtofile--1.3--1.4.sql && \
+            cp /usr/share/postgresql/13/extension/pgauditlogtofile--1.4--1.5.sql ./usr/share/postgresql/13/extension/pgauditlogtofile--1.4--1.5.sql
+      - name: build pkg
+        run: dpkg --build ./postgresql-13-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && ls -la
+      - name: Upload deb file
+        uses: actions/upload-artifact@v3
+        with:
+          name: postgresql-13-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+          path: postgresql-13-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+
+  postgresql-12-pgauditlogtofile:
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:12.11
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a one-line script
+        run: | 
+            apt update && \
+            apt -y --no-install-recommends install \
+            postgresql-12-postgis-3 \
+            postgresql-12-pgaudit \
+            postgresql-server-dev-12 gcc libgssapi-krb5-2 libkrb5-dev libsasl2-modules-gssapi-mit libz-dev build-essential && \
+            rm -rf /var/lib/apt/lists/*
+      - name: ls
+        run: ls -la
+      - name: make
+        run: make install USE_PGXS=1
+      - name: make build dir
+        run: mkdir postgresql-12-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64
+      - name: copy files
+        run: |
+            cd postgresql-12-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
+            mkdir DEBIAN && cp ../debian-pgsql12.control ./DEBIAN/control && \
+            mkdir -p ./usr/lib/postgresql/12/lib/ && cp /usr/lib/postgresql/12/lib/pgauditlogtofile.so ./usr/lib/postgresql/12/lib/pgauditlogtofile.so && \
+            mkdir -p ./usr/lib/postgresql/12/lib/bitcode/ && cp /usr/lib/postgresql/12/lib/bitcode/pgauditlogtofile.index.bc ./usr/lib/postgresql/12/lib/bitcode/pgauditlogtofile.index.bc && \
+            mkdir -p ./usr/lib/postgresql/12/lib/bitcode/pgauditlogtofile/ && cp -r /usr/lib/postgresql/12/lib/bitcode/pgauditlogtofile/ ./usr/lib/postgresql/12/lib/bitcode/pgauditlogtofile/ && \
+            mkdir -p ./usr/share/postgresql/12/extension/ && cp /usr/share/postgresql/12/extension/pgauditlogtofile.control ./usr/share/postgresql/12/extension/pgauditlogtofile.control && \
+            cp /usr/share/postgresql/12/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/12/extension/pgauditlogtofile--1.0.sql && \
+            cp /usr/share/postgresql/12/extension/pgauditlogtofile--1.0--1.2.sql ./usr/share/postgresql/12/extension/pgauditlogtofile--1.0--1.2.sql && \
+            cp /usr/share/postgresql/12/extension/pgauditlogtofile--1.2--1.3.sql ./usr/share/postgresql/12/extension/pgauditlogtofile--1.2--1.3.sql && \
+            cp /usr/share/postgresql/12/extension/pgauditlogtofile--1.3--1.4.sql ./usr/share/postgresql/12/extension/pgauditlogtofile--1.3--1.4.sql && \
+            cp /usr/share/postgresql/12/extension/pgauditlogtofile--1.4--1.5.sql ./usr/share/postgresql/12/extension/pgauditlogtofile--1.4--1.5.sql
+      - name: build pkg
+        run: dpkg --build ./postgresql-12-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && ls -la
+      - name: Upload deb file
+        uses: actions/upload-artifact@v3
+        with:
+          name: postgresql-12-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+          path: postgresql-12-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+
+  postgresql-11-pgauditlogtofile:
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:11.16
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a one-line script
+        run: | 
+            apt update && \
+            apt -y --no-install-recommends install \
+            postgresql-11-postgis-3 \
+            postgresql-11-pgaudit \
+            postgresql-server-dev-11 gcc libgssapi-krb5-2 libkrb5-dev libsasl2-modules-gssapi-mit libz-dev build-essential && \
+            rm -rf /var/lib/apt/lists/*
+      - name: ls
+        run: ls -la
+      - name: make
+        run: make install USE_PGXS=1
+      - name: make build dir
+        run: mkdir postgresql-11-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64
+      - name: copy files
+        run: |
+            cd postgresql-11-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
+            mkdir DEBIAN && cp ../debian-pgsql11.control ./DEBIAN/control && \
+            mkdir -p ./usr/lib/postgresql/11/lib/ && cp /usr/lib/postgresql/11/lib/pgauditlogtofile.so ./usr/lib/postgresql/11/lib/pgauditlogtofile.so && \
+            mkdir -p ./usr/lib/postgresql/11/lib/bitcode/ && cp /usr/lib/postgresql/11/lib/bitcode/pgauditlogtofile.index.bc ./usr/lib/postgresql/11/lib/bitcode/pgauditlogtofile.index.bc && \
+            mkdir -p ./usr/lib/postgresql/11/lib/bitcode/pgauditlogtofile/ && cp -r /usr/lib/postgresql/11/lib/bitcode/pgauditlogtofile/ ./usr/lib/postgresql/11/lib/bitcode/pgauditlogtofile/ && \
+            mkdir -p ./usr/share/postgresql/11/extension/ && cp /usr/share/postgresql/11/extension/pgauditlogtofile.control ./usr/share/postgresql/11/extension/pgauditlogtofile.control && \
+            cp /usr/share/postgresql/11/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/11/extension/pgauditlogtofile--1.0.sql && \
+            cp /usr/share/postgresql/11/extension/pgauditlogtofile--1.0--1.2.sql ./usr/share/postgresql/11/extension/pgauditlogtofile--1.0--1.2.sql && \
+            cp /usr/share/postgresql/11/extension/pgauditlogtofile--1.2--1.3.sql ./usr/share/postgresql/11/extension/pgauditlogtofile--1.2--1.3.sql && \
+            cp /usr/share/postgresql/11/extension/pgauditlogtofile--1.3--1.4.sql ./usr/share/postgresql/11/extension/pgauditlogtofile--1.3--1.4.sql && \
+            cp /usr/share/postgresql/11/extension/pgauditlogtofile--1.4--1.5.sql ./usr/share/postgresql/11/extension/pgauditlogtofile--1.4--1.5.sql
+      - name: build pkg
+        run: dpkg --build ./postgresql-11-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && ls -la
+      - name: Upload deb file
+        uses: actions/upload-artifact@v3
+        with:
+          name: postgresql-11-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+          path: postgresql-11-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+
+  postgresql-10-pgauditlogtofile:
+    runs-on: ubuntu-latest
+    container:
+      image: postgres:10.21
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a one-line script
+        run: | 
+            apt update && \
+            apt -y --no-install-recommends install \
+            postgresql-10-postgis-3 \
+            postgresql-10-pgaudit \
+            postgresql-server-dev-10 gcc libgssapi-krb5-2 libkrb5-dev libsasl2-modules-gssapi-mit libz-dev build-essential && \
+            rm -rf /var/lib/apt/lists/*
+      - name: ls
+        run: ls -la
+      - name: make
+        run: make install USE_PGXS=1
+      - name: make build dir
+        run: mkdir postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64
+      - name: copy files
+        run: |
+            cd postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && \
+            mkdir DEBIAN && cp ../debian-pgsql11.control ./DEBIAN/control && \
+            mkdir -p ./usr/lib/postgresql/10/lib/ && cp /usr/lib/postgresql/10/lib/pgauditlogtofile.so ./usr/lib/postgresql/10/lib/pgauditlogtofile.so && \
+            mkdir -p ./usr/share/postgresql/10/extension/ && cp /usr/share/postgresql/10/extension/pgauditlogtofile.control ./usr/share/postgresql/10/extension/pgauditlogtofile.control && \
+            cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.0.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.0.sql && \
+            cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.0--1.2.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.0--1.2.sql && \
+            cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.2--1.3.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.2--1.3.sql && \
+            cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.3--1.4.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.3--1.4.sql && \
+            cp /usr/share/postgresql/10/extension/pgauditlogtofile--1.4--1.5.sql ./usr/share/postgresql/10/extension/pgauditlogtofile--1.4--1.5.sql
+      - name: build pkg
+        run: dpkg --build ./postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64 && ls -la
+      - name: Upload deb file
+        uses: actions/upload-artifact@v3
+        with:
+          name: postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
+          path: postgresql-10-pgauditlogtofile_1.5.2-1.pgdg110+1_amd64.deb
