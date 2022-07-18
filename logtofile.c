@@ -330,7 +330,6 @@ static inline bool pgauditlogtofile_is_open_file(void) {
  * Checks if the audit log file needs to be rotated before we use it
  */
 static bool pgauditlogtofile_needs_rotate_file(void) {
-  printf("Checking if it needs to rotate the file\n");
   /* Rotate if we are forcing */
   if (pgaudit_log_shm->force_rotation) {
     LWLockAcquire(pgaudit_log_shm->lock, LW_EXCLUSIVE);
@@ -339,29 +338,23 @@ static bool pgauditlogtofile_needs_rotate_file(void) {
     return true;
   }
 
-  printf("CHECKING if the global name is different to this backend copy %s %s\n", filename_in_use, pgaudit_log_shm->filename);
-
-  /* Rotate if the global name is different to this backend copy: it has been
-   * rotated */
-  if (strcmp(filename_in_use, pgaudit_log_shm->filename) != 0) {
-    printf("Rotate when the global name is different to this backend copy %s %s\n", filename_in_use, pgaudit_log_shm->filename);
-    return true;
-  }
-
 
   /* Rotate if rotation_age is exceeded, and this backend is the first in notice
    * it */
-  printf("CHECKING if rotation_age is exceeded\n");
   if ((pg_time_t)time(NULL) >= pgaudit_log_shm->next_rotation_time) {
     LWLockAcquire(pgaudit_log_shm->lock, LW_EXCLUSIVE);
     pgaudit_log_shm->next_rotation_time =
         pgauditlogtofile_calculate_next_rotation_time();
     LWLockRelease(pgaudit_log_shm->lock);
-    printf("Rotate because rotation_age is exceeded\n");
     return true;
   }
 
-  printf("NO rotate\n");
+  /* Rotate if the global name is different to this backend copy: it has been
+   * rotated */
+  if (strcmp(filename_in_use, pgaudit_log_shm->filename) != 0) {
+    return true;
+  }
+
   return false;
 }
 
